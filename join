@@ -269,16 +269,16 @@ local function executeStart()
     return success, err
 end
 
--- ฟังก์ชันดึงจำนวนของที่มีอยู่ปัจจุบัน (ตัวเลขตัวแรก เช่น 89 จาก 89/300)
+-- ฟังก์ชันดึงจำนวนของที่มีอยู่ปัจจุบัน
 local function getCurrentItemCount()
     if inventorySpaceLabel and inventorySpaceLabel:IsA("TextLabel") then
-        local text = inventorySpaceLabel.Text -- เช่น "89/300"
+        local text = inventorySpaceLabel.Text
         InventoryValLabel.Text = text
         
         for numStr in text:gmatch("%d+") do
             local num = tonumber(numStr)
             if num then
-                return num -- คืนค่าตัวเลขตัวแรก (จำนวนของที่มี)
+                return num 
             end
         end
     end
@@ -290,7 +290,7 @@ CreateBtn.MouseButton1Click:Connect(function()
     setStatus("🏗️ กำลังสร้างห้อง...", Color3.fromRGB(255, 200, 50))
     local ok, res = executeCreate()
     if ok then setStatus("✅ สร้างห้องสำเร็จ!", Color3.fromRGB(100, 255, 150))
-    else setStatus("❌ Error: " .. tostring(res), Color3.fromRGB(255, 80, 80)) end
+    else setStatus("❌ Error: " + tostring(res), Color3.fromRGB(255, 80, 80)) end
 end)
 
 StartBtn.MouseButton1Click:Connect(function()
@@ -298,7 +298,7 @@ StartBtn.MouseButton1Click:Connect(function()
     syncTime()
     local ok, res = executeStart()
     if ok then setStatus("✅ เริ่มด่านสำเร็จ!", Color3.fromRGB(100, 255, 150))
-    else setStatus("⚠️ " .. tostring(res), Color3.fromRGB(255, 200, 80)) end
+    else setStatus("⚠️ " + tostring(res), Color3.fromRGB(255, 200, 80)) end
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -312,15 +312,15 @@ MinBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =============================================
--- Automatic Background Guard Loop (Runs Immediately)
+-- Automatic Background Guard Loop (0 - 9 Items)
 -- =============================================
 task.spawn(function()
     while true do
         local itemCount = getCurrentItemCount()
         
-        -- ถ้าของมีน้อยกว่า 10 ชิ้น จะเปิดห้องและเข้าด่านให้อัตโนมัติทันที
-        if itemCount < 10 then
-            setStatus("⚠️ ของมีแค่ " .. itemCount .. " ชิ้น (< 10) กำลังจอยด่าน...", Color3.fromRGB(255, 200, 50))
+        -- แก้ไขเงื่อนไขตรงนี้: ทำงานเฉพาะเมื่อของมี 0 ถึง 9 ชิ้นเท่านั้น
+        if itemCount >= 0 and itemCount < 10 then
+            setStatus("⚠️ ของมี " .. itemCount .. " ชิ้น (0-9) กำลังจอยด่าน...", Color3.fromRGB(255, 200, 50))
             
             executeCreate()
             task.wait(2)
@@ -328,7 +328,7 @@ task.spawn(function()
             executeStart()
             task.wait(15) -- รอเข้าเกมก่อนเช็คใหม่รอบถัดไป
         else
-            setStatus("🛡️ ระบบเช็คอัตโนมัติทำงานอยู่ (มีของ: " .. itemCount .. " ชิ้น)", Color3.fromRGB(100, 255, 150))
+            setStatus("🛡️ ระบบเช็คอัตโนมัติทำงานอยู่ (มีของ: " .. itemCount .. " ชิ้น ไม่จอย)", Color3.fromRGB(100, 255, 150))
         end
         
         task.wait(3)
