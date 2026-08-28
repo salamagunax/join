@@ -269,19 +269,20 @@ local function executeStart()
     return success, err
 end
 
-local function getAvailableSpace()
+-- ฟังก์ชันดึงจำนวนของที่มีอยู่ปัจจุบัน (ตัวเลขตัวแรก เช่น 89 จาก 89/300)
+local function getCurrentItemCount()
     if inventorySpaceLabel and inventorySpaceLabel:IsA("TextLabel") then
-        local text = inventorySpaceLabel.Text
+        local text = inventorySpaceLabel.Text -- เช่น "89/300"
         InventoryValLabel.Text = text
         
         for numStr in text:gmatch("%d+") do
             local num = tonumber(numStr)
             if num then
-                return num
+                return num -- คืนค่าตัวเลขตัวแรก (จำนวนของที่มี)
             end
         end
     end
-    return 999
+    return 0
 end
 
 -- Manual Button Handlers
@@ -315,11 +316,11 @@ end)
 -- =============================================
 task.spawn(function()
     while true do
-        local currentSpace = getAvailableSpace()
+        local itemCount = getCurrentItemCount()
         
-        -- ถ้าช่องกระเป๋าน้อยกว่า 10 จะเปิดห้องและเข้าด่านให้อัตโนมัติทันที
-        if currentSpace < 10 then
-            setStatus("⚠️ ช่องเหลือน้อยกว่า 10 (" .. currentSpace .. ") กำลังจอยด่าน...", Color3.fromRGB(255, 200, 50))
+        -- ถ้าของมีน้อยกว่า 10 ชิ้น จะเปิดห้องและเข้าด่านให้อัตโนมัติทันที
+        if itemCount < 10 then
+            setStatus("⚠️ ของมีแค่ " .. itemCount .. " ชิ้น (< 10) กำลังจอยด่าน...", Color3.fromRGB(255, 200, 50))
             
             executeCreate()
             task.wait(2)
@@ -327,7 +328,7 @@ task.spawn(function()
             executeStart()
             task.wait(15) -- รอเข้าเกมก่อนเช็คใหม่รอบถัดไป
         else
-            setStatus("🛡️ ระบบเช็คอัตโนมัติทำงานอยู่ (ว่าง: " .. currentSpace .. ")", Color3.fromRGB(100, 255, 150))
+            setStatus("🛡️ ระบบเช็คอัตโนมัติทำงานอยู่ (มีของ: " .. itemCount .. " ชิ้น)", Color3.fromRGB(100, 255, 150))
         end
         
         task.wait(3)
@@ -335,8 +336,8 @@ task.spawn(function()
 end)
 
 if inventorySpaceLabel and inventorySpaceLabel:IsA("TextLabel") then
-    getAvailableSpace()
+    getCurrentItemCount()
     inventorySpaceLabel:GetPropertyChangedSignal("Text"):Connect(function()
-        getAvailableSpace()
+        getCurrentItemCount()
     end)
 end
