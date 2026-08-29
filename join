@@ -269,17 +269,22 @@ local function executeStart()
     return success, err
 end
 
--- ฟังก์ชันดึงจำนวนของที่มีอยู่ปัจจุบัน
+-- ฟังก์ชันดึงจำนวนของที่มีอยู่ปัจจุบัน (แก้ไขการดึงตัวเลข)
 local function getCurrentItemCount()
     if inventorySpaceLabel and inventorySpaceLabel:IsA("TextLabel") then
         local text = inventorySpaceLabel.Text
         InventoryValLabel.Text = text
         
-        for numStr in text:gmatch("%d+") do
-            local num = tonumber(numStr)
-            if num then
-                return num 
-            end
+        -- ค้นหาโครงสร้างแบบ "ตัวเลข/ตัวเลข" เช่น "53/300"
+        local currentItems = string.match(text, "(%d+)%s*/%s*%d+")
+        if currentItems then
+            return tonumber(currentItems)
+        end
+
+        -- เผื่อรูปแบบอื่น ดึงตัวเลขแรกแบบรัดกุม
+        local num = string.match(text, "%d+")
+        if num then
+            return tonumber(num)
         end
     end
     return 0
@@ -290,7 +295,7 @@ CreateBtn.MouseButton1Click:Connect(function()
     setStatus("🏗️ กำลังสร้างห้อง...", Color3.fromRGB(255, 200, 50))
     local ok, res = executeCreate()
     if ok then setStatus("✅ สร้างห้องสำเร็จ!", Color3.fromRGB(100, 255, 150))
-    else setStatus("❌ Error: " + tostring(res), Color3.fromRGB(255, 80, 80)) end
+    else setStatus("❌ Error: " .. tostring(res), Color3.fromRGB(255, 80, 80)) end
 end)
 
 StartBtn.MouseButton1Click:Connect(function()
@@ -298,7 +303,7 @@ StartBtn.MouseButton1Click:Connect(function()
     syncTime()
     local ok, res = executeStart()
     if ok then setStatus("✅ เริ่มด่านสำเร็จ!", Color3.fromRGB(100, 255, 150))
-    else setStatus("⚠️ " + tostring(res), Color3.fromRGB(255, 200, 80)) end
+    else setStatus("⚠️ " .. tostring(res), Color3.fromRGB(255, 200, 80)) end
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -318,7 +323,7 @@ task.spawn(function()
     while true do
         local itemCount = getCurrentItemCount()
         
-        -- แก้ไขเงื่อนไขตรงนี้: ทำงานเฉพาะเมื่อของมี 0 ถึง 9 ชิ้นเท่านั้น
+        -- ทำงานเฉพาะเมื่อของมี 0 ถึง 9 ชิ้นเท่านั้น
         if itemCount >= 0 and itemCount < 10 then
             setStatus("⚠️ ของมี " .. itemCount .. " ชิ้น (0-9) กำลังจอยด่าน...", Color3.fromRGB(255, 200, 50))
             
